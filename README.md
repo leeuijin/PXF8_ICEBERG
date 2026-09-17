@@ -108,17 +108,30 @@ CALL spark_catalog.system.remove_orphan_files(
 실무에서는 S3 용량과 쿼리 성능을 모두 최적화하기 위해 Airflow 등을 사용하여 다음 3단계 파이프라인을 주기적(예: 매일 새벽)으로 스케줄링
 Compaction 작업 (2가지 종류) ->  expire_snapshots 작업 -> remove_orphan_files 작업
 
-## 일반 Compaction  
+# 1-1.일반 Compaction  
 CALL spark_catalog.system.rewrite_data_files(
   table => 'analytics.clickstream_events'
 );
 
-## Sorting Compaction  
+# 1-2.Sorting Compaction  
 CALL spark_catalog.system.rewrite_data_files(
   table => 'analytics.clickstream_events',
   strategy => 'sort',
   sort_order => 'event_time DESC, event_type ASC', -- 날짜 및 타입 기준으로 정렬하여 병합
   options => map('target-file-size-bytes', '536870912') -- 타겟 파일 크기를 512MB로 지정
+);
+# 2.스냅샷 만료 (Expire Snapshots) 기준 삭제 
+ ex)Spark SQL
+-- 지정한 시간 이전의 스냅샷을 지우고, 연관된 쓰레기 데이터를 S3에서 물리적 삭제
+CALL spark_catalog.system.expire_snapshots(
+  table => 'analytics.clickstream_events',
+  older_than => TIMESTAMP '2026-09-10 00:00:00',
+  retain_last => 5 -- (선택사항) 최소 5개의 최신 스냅샷은 무조건 남겨둠
+);
+# 3.고아 파일 제거 (Remove Orphan Files) 기준 삭제 
+ ex)Spark SQL -- 메타데이터에 추적되지 않는 잉여 파일을 찾아 S3에서 삭제
+CALL spark_catalog.system.remove_orphan_files(
+  table => 'analytics.clickstream_events'
 );
 
 
