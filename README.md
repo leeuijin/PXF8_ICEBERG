@@ -84,7 +84,7 @@ SET TBLPROPERTIES (
 Greenplum(PXF)은 데이터를 읽을(Read) 때 Iceberg의 메타데이터를 확인하여 테이블이 CoW로 쓰였는지, MoR(Delete File 포함)로 쓰였는지 자동으로 파악하고 처리합니다. 따라서 데이터를 읽어오는 Greenplum 쪽에서는 별도의 CoW/MoR 관련 설정을 해줄 필요가 없음
 단지 PXF 외의 연결의 데이터 변경 및 수정에 대해서만 다음과 같이 진행
 
-# UPDATE와 DELETE를 반복하면 S3 용량이 계속 늘어날 텐데, 사용하지 않는 오래된 스냅샷과 과거 Parquet 파일들은 어떻게 물리적으로할까?
+# UPDATE와 DELETE를 반복하면 S3 용량이 계속 늘어날 텐데, 사용하지 않는 오래된 스냅샷과 과거 Parquet 파일들은 어떻게 물리적으로 관리 할까?
 
 Apache Iceberg는 '시간 여행(Time Travel)' 기능을 제공하기 위해 과거 스냅샷과 구버전 Parquet 파일들을 기본적으로 무한정 보관합니다.  S3 저장소 용량 낭비를 막으려면, 데이터를 관리하는 쪽 엔진(주로 Apache Spark)에서 시스템 프로시저(CALL 명령어)를 통해 정기적인 청소 작업을 수행
 
