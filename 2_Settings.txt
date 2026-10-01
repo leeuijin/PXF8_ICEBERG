@@ -1,0 +1,107 @@
+# 테스트 환경 구성
+
+CREATE EXTENSION pxf;
+CREATE EXTENSION pxf_fdw;
+
+#ICEBERG 카탈로그 데이터베이스 생성
+
+$createdb iceberg_catalog
+
+# PXF 설정
+mkdir -p /usr/local/pxf-gp7/clusters/default/servers/iceberg-s3
+
+[gpadmin@mdw iceberg-s3]$ cat iceberg-site.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property>
+        <name>iceberg.catalog</name>
+        <value>default</value>
+    </property>
+    <property>
+        <name>iceberg.catalog.default.type</name>
+        <value>jdbc</value>
+    </property>
+    <property>
+        <name>iceberg.catalog.default.uri</name>
+        <value>jdbc:postgresql://[META_DB_IP]]:[META_DB_PORT]/iceberg_catalog</value>
+    </property>
+    <property>
+        <name>iceberg.catalog.default.warehouse</name>
+        <value>http://[S3_IP]:[S3_PORT]/iceberg</value>
+    </property>
+    <property>
+        <name>fs.s3.impl</name>
+        <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+    </property>
+</configuration>
+
+[gpadmin@mdw iceberg-s3]$ cat minio-site.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property>
+        <name>fs.s3a.endpoint</name>
+        <value>http://[S3_IP]:[S3_PORT]</value>
+    </property>
+    <property>
+        <name>fs.s3a.access.key</name>
+        <value>[ACCESS_KEY]</value>
+    </property>
+    <property>
+        <name>fs.s3a.secret.key</name>
+        <value>[SECRET_KEY]</value>
+    </property>
+    <property>
+        <name>fs.s3a.fast.upload</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>true</value>
+    </property>
+</configuration>
+
+# PXF 시작
+
+$pxf cluster sync
+$pxf cluster start
+$pxf cluster status
+
+# 외부 서버 생성 및 권한 부여
+CREATE SERVER pxf_iceberg_s3 FOREIGN DATA WRAPPER iceberg_pxf_fdw OPTIONS (
+    config 'iceberg-s3'
+);
+ALTER SERVER pxf_iceberg_s3 OWNER TO gpadmin;
+CREATE USER MAPPING FOR gpadmin SERVER pxf_iceberg_s3;
+
+# iceberg_s3 외부 테이블 생성
+CREATE FOREIGN TABLE public.ext_clickstream_events (
+    event_id integer,
+    event_type text,
+    event_time timestamp without time zone,
+    user_id bigint,
+    payload text
+)
+SERVER pxf_iceberg_s3
+OPTIONS (
+    resource 'analytics.clickstream_events'
+);
+
+#조회
+gpadmin=# select * from ext_clickstream_events;
+ event_id | event_type |         event_time         | user_id |                  payload
+----------+------------+----------------------------+---------+-------------------------------------------
+      101 | lee        | 2026-09-16 23:01:49.568707 |    5001 | {"device": "mobile", "ip": "192.168.1.1"}
+      102 | uijin      | 2026-09-16 23:01:49.568707 |    5002 | {"item_id": 998, "button": "add_to_cart"}
+      103 | aiden      | 2026-09-16 23:01:49.568707 |    5001 | {"order_id": "ORD-1234", "amount": 25000}
+      101 | login      | 2026-09-14 19:01:54.02944  |    5001 | {"device": "mobile", "ip": "192.168.1.1"}
+      102 | click      | 2026-09-14 19:01:54.02944  |    5002 | {"item_id": 998, "button": "add_to_cart"}
+      103 | purchase   | 2026-09-14 19:01:54.02944  |    5001 | {"order_id": "ORD-1234", "amount": 25000}
+(6 rows)
+
+
+
+
+
+
+
+
