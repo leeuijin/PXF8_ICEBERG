@@ -9,6 +9,6 @@
 
 # Greenplum & Iceberg Architecture
 <img width="1024" height="559" alt="GPDB_PXF_ICEBERG" src="https://github.com/user-attachments/assets/8acd2610-fcd3-4a03-8520-ced114e20037" />
-- Iceberg 카탈로그 데이터베이스는 TanzuSQL(PostgreSQL) 에도 구축 가능하고 Greenplum 에도 구축이 가능합니다. PXF 사용할 시에는 PostgreSQL에 별도 데이터베이스로 관리하는것을 권장합니다.
+- Iceberg 카탈로그 데이터베이스는 TanzuSQL(PostgreSQL) 에도 구축 가능하고 Greenplum 에도 구축이 가능합니다. 그러나 PostgreSQL에 별도 데이터베이스로 관리하는것을 권장합니다.
 
 
