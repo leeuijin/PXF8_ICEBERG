@@ -90,7 +90,7 @@ arrow_table = pa.Table.from_pandas(df)
 table.append(arrow_table)
 print(f"Successfully appended {len(df)} rows to {identifier} in MinIO.")
 
-#실행 예
-#(venv) [hadoop@vm2-hdfs python]$ python insert_to_minio.py
-#Table 'analytics.clickstream_events' loaded successfully.
+# 실행 예
+# (venv) [hadoop@vm2-hdfs python]$ python insert_to_minio.py
+# Table 'analytics.clickstream_events' loaded successfully.
 #Successfully appended 3 rows to analytics.clickstream_events in MinIO.
