@@ -98,6 +98,26 @@ gpadmin=# select * from ext_clickstream_events;
       103 | purchase   | 2026-09-14 19:01:54.02944  |    5001 | {"order_id": "ORD-1234", "amount": 25000}
 (6 rows)
 
+#PXF v8.1 이상에서는 insert 도 지원됩니다.
+
+[gpadmin@mdw pkg]$ pxf --version
+PXF version 8.1.0
+
+#Insert
+gpadmin=# INSERT INTO public.ext_clickstream_events (
+    event_id,
+    event_type,
+    event_time,
+    user_id,
+    payload
+) VALUES (
+    104,
+    'click',
+    '2026-10-21 14:30:00',
+    5003,
+    '{"device": "desktop", "page": "checkout"}'
+);
+INSERT 0 1
 
 
 
